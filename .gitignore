@@ -1,0 +1,19 @@
+# Конфиги клиентов с секретами никогда не должны попадать в репо
+clients/
+*.toml
+*.conf
+
+# Env и токены
+.env
+.env.*
+*.token
+*.pat
+.gh_pat*
+
+# OS / редактор
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.bak
+*~
