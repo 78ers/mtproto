@@ -673,6 +673,8 @@ if [[ "$(realpath "$0")" != "$SCRIPT_TARGET" ]]; then
     install_self
     ok "Установка завершена. В дальнейшем запускайте: tgproxy"
     echo
+    # Флаг --install: только установка, без запуска меню (для автоматизации)
+    [[ "${1:-}" == "--install" ]] && exit 0
 fi
 
 main_menu
