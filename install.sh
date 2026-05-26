@@ -112,8 +112,8 @@ EOF
 prepare_system() {
     info "Установка зависимостей (curl, jq, qrencode, xxd)..."
     export DEBIAN_FRONTEND=noninteractive
-    apt-get update -y >/dev/null
-    apt-get install -y curl wget jq qrencode xxd ca-certificates >/dev/null
+    apt-get update -y
+    apt-get install -y curl wget jq qrencode xxd ca-certificates
 
     # BBR + IP forwarding (полезно, безопасно)
     if ! grep -qE "^net.ipv4.ip_forward=1" /etc/sysctl.conf; then
@@ -349,12 +349,26 @@ add_client() {
         break
     done
 
-    local port
-    if ! port=$(find_free_port); then
-        err "Нет свободных портов в диапазоне ${PORT_MIN}-${PORT_MAX}"
-        pause; return
+    local port auto_port
+    auto_port=$(find_free_port 2>/dev/null || echo "")
+    echo "Выбор порта:"
+    echo "  1) Автоматически${auto_port:+ (${auto_port})}"
+    echo "  2) Ввести вручную"
+    read -rp "Выбор [1]: " port_choice
+    if [[ "${port_choice:-1}" == "2" ]]; then
+        while true; do
+            read -rp "Порт (1024-65535): " port
+            valid_port "$port" && break
+            err "Некорректный порт — нужно число от 1024 до 65535"
+        done
+    else
+        if [[ -z "$auto_port" ]]; then
+            err "Нет свободных портов в диапазоне ${PORT_MIN}-${PORT_MAX}"
+            pause; return
+        fi
+        port="$auto_port"
     fi
-    info "Назначен свободный порт: ${port}"
+    info "Порт: ${port}"
 
     local pair secret domain
     pair=$(prompt_secret_source "$DEFAULT_FAKE_TLS_DOMAIN") || { warn "Отмена"; pause; return; }
